@@ -1,0 +1,43 @@
+census = pd.read_csv("census file")
+
+census = census.rename(columns={"geography code": "LSOA21CD"})
+census = census.set_index("LSOA21CD")
+df = crime.join(census, how="inner")
+
+# standardising housing 
+
+df["total_houses"] = (df["owned"] + df["rented"] + df["private"])
+
+df["owned"] = df["owned"] / df["total_housing"]
+df["rented"] = df["rented"] / df["total_housing"]
+
+# standardising unemployment 
+
+df["unemployment_rate"] = df["Unemployed"] / df["Total"]
+
+# standaridsing ethnicity 
+
+df["ethnic_total"] = (df["asian"] + df["black"] + df["white"])
+
+df["asian"] = df["asian"] / df["ethnic_total"]
+df["black"] = df["black"] / df["ethnic_total"]
+
+# defining variables
+
+variables = ["crime", "owned", "rented", "unemployment_rate", "asian", "black"]
+
+y = gdf["crime"].values.reshape(-1, 1)
+
+x = gdf[["crime", "owned", "rented", "unemployment_rate", "asian", "black"]
+
+x = sm.add_constant(x)
+x = X.values
+
+# running model 
+
+model = GM_Lag(y=y,x=x,w=w,
+    name_y="crime",
+    name_x=["crime", "owned", "rented", "unemployment_rate", "asian", "black"],
+    spat_diag=True)
+    
+print(model.summary)
