@@ -1,0 +1,90 @@
+gdf['crime_lag'] = weights.spatial_lag.lag_spatial(w, gdf['crime'])
+
+def standardize(df, var):
+    newname = var + '_z'
+    df[newname] = (df[var] - df[var].mean()) / df[var].std()
+
+standardize(gdf, 'crime')
+standardize(gdf, 'crime_lag')
+
+fig, ax = plt.subplots(1, figsize=(6, 6))
+
+ax.scatter(gdf['crime_z'], gdf['crime_lag_z'])
+
+plt.show()
+
+lisa = esda.moran.Moran_Local(gdf['crime'], w)
+
+gdf['p-sim'] = lisa.p_sim
+sig = 1 * (lisa.p_sim < 0.05)
+slabels = ['non-sig.', 'significant']
+labels = [slabels[i] for i in sig]
+gdf['sig'] = labels
+gdf[['sig', 'p-sim']].head(10)
+
+import matplotlib.pyplot as plt
+from matplotlib import colors
+
+fig, ax = plt.subplots(1, figsize=(10, 8))
+
+sigcolors = {
+    'non-sig.': 'lightgrey',
+    'significant': 'black'}
+
+gdf.plot(
+    column='sig',categorical=True,cmap=colors.ListedColormap(list(sigcolors.values())),
+    linewidth=0.1,
+    edgecolor='white',
+    legend=True,
+    legend_kwds={"title": "Local Moran I", "loc": 2}, ax=ax)
+
+plt.show()
+
+lisa.q[1:10]
+
+counts = [(j,(lisa.q==j).sum()) for j in range(1,5)]
+counts
+
+qlabels = ['HH', 'LH', 'LL', 'HL'] 
+labels = [qlabels[i - 1] for i in lisa.q] 
+labels[1:10]
+
+gdf['qlabels'] = labels
+[(qlabel, (gdf['qlabels']==qlabel).sum()) for qlabel in qlabels]
+
+HH = 1 * ((sig * lisa.q) == 1)
+LL = 3 * ((sig * lisa.q) == 3)
+LH = 2 * ((sig * lisa.q) == 2)
+HL = 4 * ((sig * lisa.q) == 4)
+
+gdf['slabels'] = pd.Categorical(
+    gdf['slabels'],
+    categories=['Non-Sig', 'HH', 'LH', 'LL', 'HL'],
+    ordered=True)
+
+import matplotlib.pyplot as plt
+from matplotlib import colors
+
+fig, ax = plt.subplots(1, figsize=(14, 14))
+
+sigcolors = colors.ListedColormap([
+    'lightgrey',
+    'pink',
+    'red',
+    'lightblue',
+    'blue'])
+
+gdf.plot(column='slabels', categorical=True,
+    cmap=sigcolors, linewidth=0.1, edgecolor='white',
+    legend=True,
+    legend_kwds={"title": "LISA (Moran's I)","loc": 2}, ax=ax)
+
+plt.show()
+
+# I also adjusted sig and replotting by doing the following:
+gdf['sig1'] = np.where(gdf['p'] <= 0.10, 1, 0)
+gdf['sig2'] = np.where(gdf['p'] <= 0.05, 1, 0)
+
+gdf['lisa1'] = np.where(gdf['sig1'] == 1,gdf['quadrant'],'Non-Sig') # this was repeated for sig 2
+
+
