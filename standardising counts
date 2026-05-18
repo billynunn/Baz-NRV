@@ -1,0 +1,13 @@
+df = pd.read_csv("basildon count")
+pop = pd.read_csv("population of basildon")
+lsoa = gpd.read_file("LSOA boundaries")
+
+crime = df.rename(columns={'LSOA code': 'LSOA Code'})
+crime = df.groupby('LSOA code').size().reset_index(name='count')
+crime = (crime.groupby('LSOA Code').size().reset_index(name='count'))
+pop = pop.rename(columns={'LSOA Code': 'LSOA Code'})
+
+merged = crime_lsoa.merge(pop[['LSOA Code', 'Total']], on='LSOA Code', how='left')
+merged['crime'] = (merged['count'] / merged['Total']) * 1000
+
+merged.to_csv("standardised counts")
