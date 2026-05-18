@@ -1,0 +1,59 @@
+def plotLeaveLocation(axes, idx, var, xlim_coords, ylim_coords):
+    gdf.plot(column=var, cmap='viridis',
+        scheme='quantiles',
+        k=5,
+        linewidth=0.0, legend=True,
+        legend_kwds={"title": var, "loc": 2},
+        ax=axes)
+
+    gdf.loc[[idx]].plot(
+        ax=axes,
+        color='none',
+        edgecolor='black',
+        linewidth=3)
+
+    axes.set_xlim(xlim_coords)
+    axes.set_ylim(ylim_coords)
+    axes.set_title(gdf.loc[idx])
+
+    plt.show()
+
+fig, ax = plt.subplots(1, 2, figsize=(12, 9))
+plotLeaveLocation(ax[0], 'E01021237', 'crime')
+plotLeaveLocation(ax[1], 'E01021289', 'crime')
+plt.tight_layout()
+
+# Dist SLO
+
+w = weights.KNN.from_dataframe(gdf, k=4)
+w.full()[0]
+
+w.transform = 'R'
+w.full()[0]
+
+gdf['crime_lag'] = weights.spatial_lag.lag_spatial(w, gdf['crime'])
+
+fig, ax = plt.subplots(1, 2, figsize=(12, 9))
+
+plotLeaveLocation(ax[0], 'E01021237', 'crime_lag')
+plotLeaveLocation(ax[1], 'E01021289', 'crime_lag')
+
+plt.tight_layout()
+
+# Cong SLO
+
+w = weights.Queen.from_dataframe(gdf)
+w.full()[0]
+
+w.transform = 'R'
+w.full()[0]
+
+gdf['crime_lag'] = weights.spatial_lag.lag_spatial(w, gdf['crime_lag'])
+
+fig, ax = plt.subplots(1, 2, figsize=(12, 9))
+
+plotLeaveLocation(ax[0], 'E01021237', 'crime_lag')
+plotLeaveLocation(ax[1], 'E01021289', 'crime_lag')
+
+plt.tight_layout()
+
