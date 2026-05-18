@@ -1,0 +1,25 @@
+path = 'standardised counts'
+ref = pd.read_csv(path, index_col='LSOA Code')
+ref = ref.rename_axis('LSOA21CD')
+ref.head()
+
+gdf = gpd.GeoDataFrame(lsoa.join(ref[['crime']]), crs=lsoa.crs)
+gdf = gdf[['FID', 'crime', 'geometry']]
+gdf.head()
+gdf = lsoa.copy()
+gdf = gdf[gdf['LSOA21NM'].str.contains('Basildon')]
+gdf = gdf.join(ref[['crime']])
+gdf = gdf[['FID', 'crime', 'geometry']]
+gdf['crime'] = gdf['crme'].fillna(0) # there was an issue where LSOAs with no crime rates weren't appearing at all, so had to debug this by copying the gdf filtering basildon then switching NaNs to 0 
+
+fig, ax = plt.subplots(1, figsize=(9, 9))
+
+gdf.plot(column='crime', cmap='viridis', scheme='quantiles',
+    k=5,
+    linewidth=0.5,
+    legend=True, ax=ax)
+
+ax.set_title("Crime Rate in Basildon (per 1000 people)")
+ax.set_axis_off()
+
+plt.show() 
