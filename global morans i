@@ -1,0 +1,3 @@
+moran = esda.moran.Moran(gdf['crime'], w) # w = distance SLO defined in testing SLO
+moran.I
+moran.p_sim
